@@ -1,0 +1,25 @@
+mpe.jar:
+
+compile classes:
+	javac -classpath ./:./processing/core/*:./mpe/config/* ./mpe/client/*.java
+
+create jar:
+	jar cvf mpe.jar mpe/client mpe/config
+
+
+-------------------------------------
+
+mpeServer.jar:
+
+compile classes:
+	javac ./mpe/server/*.java
+
+create jar:
+	jar cvf mpeServer.jar mpe/server
+
+
+-------------------------------------
+
+
+NOTE: to extract the contents of the jar file:
+	jar xf mpe.far

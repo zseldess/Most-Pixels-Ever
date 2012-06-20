@@ -1,8 +1,8 @@
 # This Fork
 
-This fork as a Java updates the Java (Eclipse/Processing) version of Most Pixels Ever (no openFrameworks).
+This fork updates the Java (Eclipse/Processing) version of Most Pixels Ever (no openFrameworks).
 
-by Zachary Seldess [http://www.zacharyseldess.com].
+by Zachary Seldess http://www.zacharyseldess.com.
 
 # Most Pixels Ever
 
