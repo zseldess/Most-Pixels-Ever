@@ -59,18 +59,7 @@ private boolean fileExists = false;
 	public boolean fileExists(){
 		return fileExists;
 	}
-	/**
-	 * Returns the integer associated with the init attribute.  Returns -1 if attribute doesn't exist.
-	 * @param attribute
-	 */
-	public int getIntValue(String attribute){
-		int value = -1;
-		if (fileExists){
-			value = parseInitInt(attribute, fileContent);
-		}
-		return value;
-	}
-	
+
 	/**
 	 * Returns the String associated with the init attribute.  Returns null if attribute doesn't exist.
 	 * @param attribute
@@ -82,6 +71,31 @@ private boolean fileExists = false;
 		}
 		return value;
 	}
+	
+	/**
+	 * Returns the integer associated with the init attribute.  Returns -1 if attribute doesn't exist.
+	 * @param attribute
+	 */
+	public int getIntValue(String attribute){
+		int value = -1;
+		if (fileExists){
+			value = parseInitInt(attribute, fileContent);
+		}
+		return value;
+	}
+
+	/**
+	 * Returns the float associated with the init attribute.  Returns -1.0 if attribute doesn't exist.
+	 * @param attribute
+	 */
+	public float getFloatValue(String attribute){
+		float value = -1.0f;
+		if (fileExists){
+			value = parseInitFloat(attribute, fileContent);
+		}
+		return value;
+	}
+		
 	/**
 	 * Returns an Integer array associated with the init attribute.  Returns an array with a length of 2
 	 * and values of -1 if attribute doesn't exist.
@@ -96,6 +110,37 @@ private boolean fileExists = false;
 		}
 		return value;
 	}
+	
+	/**
+	 * Returns a Float array associated with the init attribute.  Returns an array with a length of 2
+	 * and values of -1.0 if attribute doesn't exist.
+	 * @param attribute
+	 */
+	public float[] getFloatValues(String attribute){
+		float[] value = null;
+		if (fileExists){
+			value = parseInitFloats(attribute, fileContent);
+		} else {
+			value = new float[]{-1.0f, -1.0f};
+		}
+		return value;
+	}
+	
+	/**
+	 * Returns a String array associated with the init attribute.  Returns an array with a length of 1
+	 * and value of 'null' if attribute doesn't exist.
+	 * @param attribute
+	 */
+	public String[] getStringValues(String attribute){
+		String[] value = null;
+		if (fileExists){
+			value = parseInitStrings(attribute, fileContent);
+		} else {
+			value = new String[]{null};
+		}
+		return value;
+	}
+		
 	/**
 	 * reads the ini file, strips out the comments and returns the user defined
 	 * variables.
@@ -141,7 +186,6 @@ private boolean fileExists = false;
 	 */
 	private String parseInitString(String attribute, String iniFile) {
 		String parsedInfo = null;
-		int value = -1;
 		String tagregex = attribute + "=(.*?);";
 		Pattern p2 = Pattern.compile(tagregex);
 		Matcher m2 = p2.matcher(iniFile);
@@ -152,7 +196,7 @@ private boolean fileExists = false;
 	}
 
 	/**
-	 * Parses the init file for the atribute and returns the value
+	 * Parses the init file for the attribute and returns the value
 	 * @param attribute
 	 * @param iniFile
 	 * @return value
@@ -173,9 +217,32 @@ private boolean fileExists = false;
 		}
 		return value;
 	}
+	
+	/**
+	 * Parses the init file for the attribute and returns the value
+	 * @param attribute
+	 * @param iniFile
+	 * @return value
+	 */
+	private float parseInitFloat(String attribute, String iniFile) {
+		String parsedInfo = "-1.0";
+		float value = -1.0f;
+		String tagregex = attribute + "=(.*?);";
+		Pattern p2 = Pattern.compile(tagregex);
+		Matcher m2 = p2.matcher(iniFile);
+		if (m2.find()) {
+			parsedInfo = m2.group(1);
+		}
+		try {
+			value = Float.parseFloat(parsedInfo);
+		} catch (Exception e) {
+			print("Can't parse attribute " + attribute);
+		}
+		return value;
+	}	
 
 	/**
-	 * Parses the init file for the atribute and returns the multiple int values
+	 * Parses the init file for the attribute and returns the multiple int values
 	 * @param attribute
 	 * @param iniFile
 	 * @return value
@@ -203,5 +270,53 @@ private boolean fileExists = false;
 		} //values loop
 		return values;
 	}
+	
+	/**
+	 * Parses the init file for the attribute and returns the multiple float values
+	 * @param attribute
+	 * @param iniFile
+	 * @return value
+	 */
+	private float[] parseInitFloats(String attribute, String iniFile) {
+		String parsedInfo = "-1.0,-1.0";
+		float[] values = null;
+		String tagregex = attribute + "=(.*?);";
+		Pattern p2 = Pattern.compile(tagregex);
+		Matcher m2 = p2.matcher(iniFile);
+		if (m2.find()) {
+			parsedInfo = m2.group(1);
+		}
+		String[] splitInfo = parsedInfo.split(",");
+		values = new float[splitInfo.length];
+		for (int i = 0; i < values.length; i++) {
+			Pattern p = Pattern.compile("\\s");
+			Matcher m = p.matcher(splitInfo[i]);
+			splitInfo[i] = m.replaceAll("");
+			try {
+				values[i] = Float.parseFloat(splitInfo[i]);
+			} catch (Exception e) {
+				values[i] = -1.0f;
+			}
+		} //values loop
+		return values;
+	}
+	
+	/**
+	 * Parses the init file for the attribute and returns the multiple String values
+	 * @param attribute
+	 * @param iniFile
+	 * @return value
+	 */
+	private String[] parseInitStrings(String attribute, String iniFile) {
+		String parsedInfo = "null,null";
+		String tagregex = attribute + "=(.*?);";
+		Pattern p2 = Pattern.compile(tagregex);
+		Matcher m2 = p2.matcher(iniFile);
+		if (m2.find()) {
+			parsedInfo = m2.group(1);
+		}
+		String[] splitInfo = parsedInfo.split(",");
+		return splitInfo;
+	}	
 
 }
