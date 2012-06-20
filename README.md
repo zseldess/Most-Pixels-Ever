@@ -1,3 +1,9 @@
+# This Fork
+
+This fork as a Java updates the Java (Eclipse/Processing) version of Most Pixels Ever (no openFrameworks).
+
+by Zachary Seldess [http://www.zacharyseldess.com].
+
 # Most Pixels Ever
 
 Most Pixels Ever is an open-source Java / C++ framework for spanning Processing sketches and openFrameWorks applications across multiple screens.
