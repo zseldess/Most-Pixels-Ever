@@ -116,12 +116,18 @@ public class TCPClient extends Thread {
         p5parent = _p;
         
         // Autodetecting if we should use 3D or not
-        enable3D = p5parent.g instanceof PGraphics3D;
-        
+        enable3D = p5parent.g instanceof PGraphics3D;  
         autoMode = _autoMode;
-        cameraZ = (p5parent.height/2.0f) / PApplet.tan(PConstants.PI * fieldOfView/360.0f);
-        
+       
         loadIniFile(_fileString);
+		
+		if (mWidth > -1 && mHeight > -1) {
+        	cameraZ = (mHeight/2.0f) / PApplet.tan(PConstants.PI * fieldOfView/360.0f);
+		}
+		else {
+        	cameraZ = (p5parent.height/2.0f) / PApplet.tan(PConstants.PI * fieldOfView/360.0f);		
+		}
+
         connect(hostName, serverPort, id);
         
         // look for a method called "frameEvent" in the parent PApplet, with one
@@ -361,7 +367,7 @@ public class TCPClient extends Thread {
         fieldOfView = val;
         
         if (p5parent != null) {
-            cameraZ = (p5parent.height/2.0f) / PApplet.tan(PConstants.PI * fieldOfView/360.0f);
+            cameraZ = (mHeight/2.0f) / PApplet.tan(PConstants.PI * fieldOfView/360.0f);
 
             if (!(p5parent.g instanceof PGraphics3D)) {
                 out("MPE Warning: Rendering in 2D! fieldOfView has no effect!");
@@ -411,7 +417,7 @@ public class TCPClient extends Thread {
 
 
         // The frustum defines the 3D clipping plane for each Client window!
-        float mod = 1f/10f;
+        float mod = 1f/1000f;
         float left   = (xOffset - mWidth/2)*mod;
         float right  = (xOffset + lWidth - mWidth/2)*mod;
         float top    = (yOffset - mHeight/2)*mod;
