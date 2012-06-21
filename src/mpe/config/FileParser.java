@@ -127,8 +127,8 @@ private boolean fileExists = false;
 	}
 	
 	/**
-	 * Returns a String array associated with the init attribute.  Returns an array with a length of 1
-	 * and value of 'null' if attribute doesn't exist.
+	 * Returns a String array associated with the init attribute.  Returns an array with a length of 2
+	 * and values of 'null' if attribute doesn't exist.
 	 * @param attribute
 	 */
 	public String[] getStringValues(String attribute){
@@ -136,7 +136,7 @@ private boolean fileExists = false;
 		if (fileExists){
 			value = parseInitStrings(attribute, fileContent);
 		} else {
-			value = new String[]{null};
+			value = new String[]{null,null};
 		}
 		return value;
 	}
