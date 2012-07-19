@@ -417,7 +417,7 @@ public class TCPClient extends Thread {
 
 
         // The frustum defines the 3D clipping plane for each Client window!
-        float mod = 1f/1000f;
+        float mod = 1f/10000f;
         float left   = (xOffset - mWidth/2)*mod;
         float right  = (xOffset + lWidth - mWidth/2)*mod;
         float top    = (yOffset - mHeight/2)*mod;
@@ -435,7 +435,7 @@ public class TCPClient extends Thread {
                         p5parent.width/2.0f, p5parent.height/2.0f, 0, 
                         0, 1, 0);
         
-        float mod = 1/10.0f;
+        float mod = 1/10000f;
         p5parent.frustum(-(p5parent.width/2)*mod, (p5parent.width/2)*mod,
                          -(p5parent.height/2)*mod, (p5parent.height/2)*mod,
                          cameraZ*mod, 10000);
