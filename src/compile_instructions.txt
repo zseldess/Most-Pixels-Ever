@@ -15,7 +15,7 @@ compile classes:
 	javac ./mpe/server/*.java
 
 create jar:
-	jar cvf mpeServer.jar mpe/server
+	jar cvfe mpeServer.jar mpe.server.MPEServer mpe/server
 
 
 -------------------------------------
