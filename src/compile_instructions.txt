@@ -22,4 +22,4 @@ create jar:
 
 
 NOTE: to extract the contents of the jar file:
-	jar xf mpe.far
+	jar xf mpe.jar

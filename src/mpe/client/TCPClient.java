@@ -22,7 +22,7 @@ import mpe.config.FileParser;
 
 import processing.core.PApplet;
 import processing.core.PConstants;
-import processing.core.PGraphics3D;
+import processing.opengl.PGraphics3D;
 
 public class TCPClient extends Thread {
     /** If DEBUG is true, the client will print lots of messages about what it is doing.
@@ -140,7 +140,8 @@ public class TCPClient extends Thread {
         }
         
         if (autoMode) {
-            p5parent.registerDraw(this);
+            // changed by zs
+            p5parent.registerMethod("draw", this);
         }
         
     }
