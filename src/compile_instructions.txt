@@ -1,7 +1,7 @@
 mpe.jar:
 
 compile classes:
-	javac -classpath ./:./processing/core/*:./mpe/config/* ./mpe/client/*.java
+	javac -classpath ./:./processing/*:./mpe/config/* ./mpe/client/*.java
 
 create jar:
 	jar cvf mpe.jar mpe/client mpe/config
