@@ -200,16 +200,16 @@ public class TCPClient extends Thread {
             setServer(fp.getStringValue("server"));
             setPort(fp.getIntValue("port"));
             setID(fp.getIntValue("id"));
-            
+
+            // XXXBUG This somehow got lost w/ the separate client and server INI files
+            int[] masterDims = fp.getIntValues("masterDimensions");
+            this.setMasterDimensions(masterDims[0], masterDims[1]);
+                        
             int[] localDim = fp.getIntValues("localScreenSize");
             setLocalDimensions(localDim[0], localDim[1]);
             
             int[] offsets = fp.getIntValues("localLocation");
             setOffsets(offsets[0], offsets[1]); 
-            
-            // XXXBUG This somehow got lost w/ the separate client and server INI files
-            int[] masterDims = fp.getIntValues("masterDimensions");
-            this.setMasterDimensions(masterDims[0], masterDims[1]);
             
             out("Settings: server = " + hostName + ":" + serverPort + ",  id = " + id
                     + ", local dimensions = " + lWidth + ", " + lHeight
@@ -291,7 +291,14 @@ public class TCPClient extends Thread {
     protected void setOffsets(int _xOffset, int _yOffset) {
         if (_xOffset > -1 && _yOffset > -1) {
             xOffset = _xOffset;
-            yOffset = _yOffset;
+            
+            // if OPENGL used, we need to invert yOffset
+            if (!enable3D) {
+                yOffset = _yOffset;
+            }
+            else {
+                yOffset = (mHeight - lHeight) - _yOffset;
+            }
         }
     }
     
@@ -417,14 +424,14 @@ public class TCPClient extends Thread {
 
 
         // The frustum defines the 3D clipping plane for each Client window!
-        float mod = 1f/10000f;
-        float left   = (xOffset - mWidth/2)*mod;
-        float right  = (xOffset + lWidth - mWidth/2)*mod;
-        float top    = (yOffset - mHeight/2)*mod;
-        float bottom = (yOffset + lHeight-mHeight/2)*mod;
-        float near   = cameraZ*mod;
+        float mod    = 1f/10000f;
+        float left   = (xOffset - mWidth/2) * mod;
+        float right  = (xOffset + lWidth - mWidth/2) * mod;
+        float top    = (yOffset - mHeight/2) * mod;
+        float bottom = (yOffset + lHeight-mHeight/2) * mod;
+        float near   = cameraZ * mod;
         float far    = 10000;
-        p5parent.frustum(left,right,top,bottom,near,far);
+        p5parent.frustum(left, right, top, bottom, near, far);
     }
     
     /**
@@ -435,10 +442,14 @@ public class TCPClient extends Thread {
                         p5parent.width/2.0f, p5parent.height/2.0f, 0, 
                         0, 1, 0);
         
-        float mod = 1/10000f;
-        p5parent.frustum(-(p5parent.width/2)*mod, (p5parent.width/2)*mod,
-                         -(p5parent.height/2)*mod, (p5parent.height/2)*mod,
-                         cameraZ*mod, 10000);
+        float mod    = 1/10000f;
+        float left   = -(p5parent.width/2) * mod;
+        float right  = (p5parent.width/2) * mod;
+        float top    = -(p5parent.height/2) * mod;
+        float bottom = (p5parent.height/2) * mod;
+        float near   = cameraZ * mod;
+        float far    = 10000;
+        p5parent.frustum(left, right, top, bottom, near, far);
     }
     
     /**
