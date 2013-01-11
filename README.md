@@ -1,8 +1,6 @@
 # This Fork
 
-This fork updates the Java (Eclipse/Processing) version of Most Pixels Ever (no openFrameworks).
-
-by Zachary Seldess http://www.zacharyseldess.com.
+This fork updates the Java (Eclipse/Processing) version of Most Pixels Ever to work on tiled display walls.
 
 # Most Pixels Ever
 
@@ -21,3 +19,5 @@ Check out the tutorials on the wiki!
 Project initiated by Daniel Shiffman with the support of [http://itp.nyu.edu](ITP).
 
 Participating developers: Jeremy Rotsztain, Elie Zananiri, Chris Kairalla.
+
+This fork: by Zachary Seldess http://www.zacharyseldess.com.
