@@ -1,0 +1,9 @@
+AsyncClient options:
+
+java -jar mpeServer.jar -listener -listenPort9003 -framerate60 -screens10
+
+options:
+-listenPort[port, default 9003]
+-debug1
+-framerate[value]
+-screens[number of screens]

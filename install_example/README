@@ -1,0 +1,48 @@
+The Most Pixels Ever is an open-source Java and C++ framework for spanning Processing 
+sketches and openFrameworks applications across multiple screens.
+
+Information on Most-Pixels-Ever, including source code (Zach's Java fork): 
+	https://github.com/zseldess/Most-Pixels-Ever
+
+---------------------------------------------
+
+Processing is installed in /share/apps/processing/processing-2.0b7/
+
+Information on Processing, including extensive documentation and examples:
+	http://processing.org/
+
+---------------------------------------------
+
+MPE automation scripts (run from any Linux machine):
+
+mpe -- run a Most-Pixels-Ever session
+	usage(v1):  mpe name [args...]
+		where:
+			name is: mpe application name
+		example:
+			mpe stampede
+	usage(v2):  mpe --list
+			lists all available mpe applications
+
+		
+mpe-stop -- stop a Most-Pixels-Ever session
+	usage:	mpe-stop
+		example:
+			mpe-stop
+
+---------------------------------------------
+
+REQUIREMENTS FOR MPE APPLICATION TO RUN WITH THE MPE STARTUP SCRIPT:
+
+1. client app should be named mpeClient and placed in .../mpe_2.0/apps/<project_name>/mpeClient/
+
+2. async client app (if any) should be named mpeAsyncClient and placed in .../mpe_2.0/apps/<project_name>/mpeAsyncClient/
+	-where <project_name> is whatever name you want to use when starting the mpe session with the mpe script
+
+Template Most-Pixels-Ever Processing sketches can be found in: (LOOK HERE FIRST)
+	/share/apps/processing/mpe_2.0/templates/
+
+For functional implementations, look at the applications in .../mpe_2.0/apps:
+	/share/apps/processing/mpe_2.0/apps/
+
+

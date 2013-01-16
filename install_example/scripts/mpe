@@ -1,0 +1,230 @@
+#!/bin/sh
+
+# mpe -- automation script to run a Most-Pixels-Ever session (for Processing 2.0b)
+#   by Zachary Seldess, Sonic Arts R&D, Calit2, UC San Diego
+
+
+# Update JAVABIN, JAVA3D, MPE, NODES, SRVIP, SRVPORT, SRVFRATE, ZONE, MPEDISPLAY according to your system
+
+# JDK location
+JAVABIN=/share/apps/processing/jdk1.6.0_32/bin
+# Java3D location
+JAVA3D=/share/apps/processing/j3d/lib/ext
+# mpe parent directory
+MPE=/share/apps/processing/mpe_2.0
+# nodes.txt location (file containing all render node ips)
+NODES=$MPE/scripts/nodes.txt
+# IP of machine running mpe server
+SRVIP=67.58.41.39
+# server backdoor listening port (for async client)
+SRVPORT=9003
+# server framerate
+SRVFRATE=60
+# ZONE name
+ZONE=dwall
+# MPE client DISPLAY environment variable
+MPEDISPLAY=:0
+
+ASYNCSTATE=0
+INC=1
+INPUT=($@)
+NAME=
+ARGS=()
+ISRUNNING=()
+
+echo_help()
+{
+    echo -e "\n\033[1mmpe\033[0m -- run a Most-Pixels-Ever session"
+    echo -e "usage(v1):  mpe name [args...]"
+    echo -e "\twhere:"
+    echo -e "\t\tname is: mpe application name"
+    echo -e "\texample:"
+    echo -e "\t\tmpe stampede"
+    echo -e "usage(v2):  mpe --list"
+    echo -e "\t\tlists all available mpe applications\n"
+}
+
+check_errs()
+{
+  # parameter 1 is the return code
+  # parameter 2 is text to display on failure
+  if [ "${1}" -ne "0" ]; then   
+    echo -e "\n** ERROR ${1} : ${2}\n"
+    # make our script exit with the right error code
+    exit ${1}
+  fi
+}
+
+is_running()
+{
+    if [ ! "$ISRUNNING" ]; then
+        # good, no running process
+        break;
+    else
+        echo -e "\n** ERROR: MPE session already running. Exiting.\n"
+        exit -1
+    fi
+}
+
+# check for --list as first argument
+if [ $# -ge 1 ]; then
+    if [ $1 == '--list' ]; then
+        echo -e "\n\033[1mAPPS\t\t\tASYNC\033[0m"
+        for DIR1 in $(ls $MPE/apps); do
+            ASYNCFLAG='none'
+            for DIR2 in $(ls $MPE/apps/$DIR1); do
+                if [ $DIR2 == 'mpeAsyncClient' ]; then
+                    ASYNCFLAG='-async'
+                fi  
+            done
+            echo -e "----------------------------------------------"
+            echo -e "$DIR1"
+            if [ $ASYNCFLAG == '-async' ]; then
+                echo -e "\t\t\tx"
+            else
+                echo
+            fi
+        done
+        echo -e "----------------------------------------------\n"
+        exit 0
+    fi
+fi
+
+# if no directory given, exit
+if [ $# -lt $INC ]; then
+    echo_help
+    exit -1 
+# else store directory and arguments
+else
+    NAME=${INPUT[$INC-1]}
+    ARGS=${INPUT[@]:$INC}   
+fi
+
+# if no directory with the name $NAME, exit     
+if [ ! -d $MPE/apps/$NAME ]; then
+    echo "$NAME doesn't exist. Exiting."
+    exit -1
+fi
+    
+# if nodes.txt doesn't exist, exit
+if [ ! -f ${NODES} ]; then
+    echo "${NODES} doesn't exist [needed for tilenames]. Exiting."
+    exit -1
+fi  
+
+# check for mpe async client, if found set ASYNCSTATE to 1
+for DIR in $(ls $MPE/apps/$NAME); do
+    if [ $DIR == 'mpeAsyncClient' ]; then
+        ASYNCSTATE=1
+    fi  
+done
+    
+# initialize AYSNC, APP, CFG, RUNDIR
+ASYNC=$NAME/mpeAsyncClient/application.linux64/*
+APP=$NAME/mpeClient/application.linux64/*
+CFG=$NAME/mpeClient/sketch.ini  
+RUNDIR=$MPE/clients               
+
+# get # of clients listed in nodes.txt
+NUMCLIENTS=0   
+for tile in `cat $NODES`; do
+    NUMCLIENTS=`expr $NUMCLIENTS + 1`;
+done
+
+# initialize JAVASERVER based on ASYNCSTATE
+if [ $ASYNCSTATE -eq 0 ]; then
+    JAVASERVER="$JAVABIN/java -jar -Dmpename=\"$ZONE\" mpeServer.jar -framerate$SRVFRATE -screens$NUMCLIENTS"
+else    
+    JAVASERVER="$JAVABIN/java -jar -Dmpename=\"$ZONE\" mpeServer.jar -listener -listenPort$SRVPORT -framerate$SRVFRATE -screens$NUMCLIENTS"
+fi
+
+# check if mpe server can be reached
+ping -c 1 -w 5 $SRVIP >/dev/null 2>&1
+check_errs $PIPESTATUS "$SRVIP failed to respond to ping. Exiting." 
+
+# check if mpe clients can be reached
+for tile in `cat $NODES`; do
+    ping -c 1 -w 5 $tile >/dev/null 2>&1
+    check_errs $PIPESTATUS "$tile failed to respond to ping. Exiting."
+done
+
+# check if mpe server is already running
+ISRUNNING=$(ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $SRVIP "ps ax | grep mpename=$ZONE | grep -v grep")
+is_running
+
+# check if mpe async client is already running
+ISRUNNING=$(ps ax | grep mpename=$ZONE | grep -v grep)
+is_running
+
+# check if mpe clients are already running on render nodes
+for tile in `cat $NODES`; do
+    ISRUNNING=$(ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $tile "ps ax | grep mpename=$ZONE | grep -v grep")
+    is_running
+done
+
+echo "copying files..."
+# copy async client files, if required
+if [ $ASYNCSTATE -eq 1 ]; then
+    echo "** headnode"
+    # copy async client application files to all headnode directory
+    cp -r $MPE/apps/$ASYNC $RUNDIR/headnode
+    check_errs $? "Can't copy $MPE/apps/$ASYNC to $RUNDIR/headnode" 
+    # copy sketch.ini to headnode directory
+    cp -f $MPE/apps/$CFG $RUNDIR/headnode
+    check_errs $? "Can't copy $MPE/apps/$CFG to $RUNDIR/headnode"
+fi
+
+# copy client files   
+for tile in `cat $NODES`; do
+    echo "** $tile"
+    # copy application files to all node directories
+    cp -r $MPE/apps/$APP $RUNDIR/$tile
+    check_errs $? "Can't copy $MPE/apps/$APP to $RUNDIR/$tile"
+    # copy sketch.ini to all node directories
+    cp -f $MPE/apps/$CFG $RUNDIR/$tile
+    check_errs $? "Can't copy $MPE/apps/$CFG to $RUNDIR/$tile"
+done
+
+# start mpeServer on appropriate headnode (mpe.ini server field must match)
+echo "starting server on ** $SRVIP"
+ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $SRVIP "cd $MPE/server && $JAVASERVER &"
+
+# start mpe clients on render nodes
+for tile in `cat $NODES`; do
+    echo "starting client on ** $tile"
+    CLIENTDIR=$RUNDIR/$tile
+    JAVACLIENT="$JAVABIN/java -Dmpename=\"$ZONE\" -Djava.library.path=\"$CLIENTDIR\" -cp \"$CLIENTDIR/lib/*:$JAVA3D/*\" mpeClient ${ARGS[@]}"
+    ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $tile "export DISPLAY=$MPEDISPLAY && cd $CLIENTDIR && $JAVACLIENT &"
+done
+
+# start mpe async client on this machine, if required
+if [ $ASYNCSTATE -eq 1 ]; then    
+    echo "starting AsyncClient on ** `hostname`"
+    ASYNCDIR=$RUNDIR/headnode
+
+    # starting async client via ssh (not a good way to do it...)
+    #JAVAASYNC="$JAVABIN/java -Dmpename=\"$ZONE\" -Djava.library.path=\"$ASYNCDIR\" -cp \"$ASYNCDIR/lib/*:$JAVA3D/*\" mpeAsyncClient ${ARGS[@]}"
+    #ssh localhost "cd $ASYNCDIR && $JAVAASYNC &"
+
+    for LIB in "$ASYNCDIR"/lib/*.jar; do
+        ASYNCCP="$ASYNCCP"${ASYNCCP:+:}"$LIB"
+    done
+
+    for LIB in "$JAVA3D"/*.jar; do
+        ASYNCCP="$ASYNCCP"${ASYNCCP:+:}"$LIB"
+    done
+
+    JAVAASYNC="$JAVABIN/java -Dmpename=$ZONE -Djava.library.path=$ASYNCDIR -cp $ASYNCCP mpeAsyncClient ${ARGS[@]}"
+    cd $ASYNCDIR && $JAVAASYNC &
+    
+    sleep 1s
+    # rename window according to zone
+    wmctrl -r mpeAsyncClient -N mpeAsyncClient-$ZONE
+fi
+
+sleep 1s
+# report success
+echo -e "\n\n====== MPE STARTUP COMPLETE ======\n\n"
+
+
+
