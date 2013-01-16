@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# mpe-stop -- automation script to stop a Most-Pixels-Ever session
+#  	by Zachary Seldess, King Abdullah University of Science and Technology
+
+
+# Update SRVIP, ZONE, NODES according to your system
+
+# IP of machine running mpe server
+SRVIP=67.58.41.39
+# ZONE name
+ZONE=dwall
+# nodes.txt location (file containing all render node ips)
+NODES=/share/apps/processing/mpe/scripts/nodes.txt
+
+echo -e "\n\033[1mmpe-stop\033[0m -- stop a Most-Pixels-Ever session\n"
+
+# kill mpe async client on this machine
+echo "killing mpe AsyncClient on ** `hostname`"
+ps ax | grep mpename=$ZONE | grep -v grep | grep -o -P ^[\\s]*[\\d]+\\s | xargs -r kill -9
+
+# kill mpe clients on render nodes
+if [ ! -f ${NODES} ]; then
+    echo "${NODES} doesn't exist [needed for tilenames]"
+else
+	for tile in `cat $NODES`; do
+    	echo "killing mpe processes on ** $tile"
+    	ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $tile "ps ax | grep mpename=$ZONE | grep -v grep | grep -o -P ^[\\\s]*[\\\d]+\\\s | xargs -r kill -9"
+	done
+fi
+
+# kill mpe server on appropriate zone-fe
+echo "killing mpe server on ** $SRVIP"
+ssh -f -o ConnectionAttempts=3 -o ConnectTimeout=3 -o ServerAliveInterval=3 $SRVIP "ps ax | grep mpename=$ZONE | grep -v grep | grep -o -P ^[\\\s]*[\\\d]+\\\s | xargs -r kill -9"
+
+wait
+sleep 1s
+# report success
+echo -e "\n\n====== MPE SHUTDOWN COMPLETE ======\n\n"

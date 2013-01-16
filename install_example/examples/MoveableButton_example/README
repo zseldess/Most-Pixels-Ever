@@ -1,0 +1,18 @@
+This is an example of using an async client to do all the computational work, with synchronous clients that simply draw what the async client tells them to (no brains).
+
+This example draws resizable and moveable buttons. Left-click and drag to move a button around. Right-click or Ctlr-click and drag to resize a button.
+ 
+In this example, the Asynchronous client reorders the contents of the message to control the render order of the buttons (e.g. selected button always renders in front of all other buttons).
+
+To run this test:
+
+1. Start the server
+	- cd to the server/ folder
+	- in Terminal, run
+		java -jar mpeServer.jar -listener -listenPort9003 -framerate60 -screens1
+
+2. Start AsyncClient
+	-double-click the mpeAsyncClient app
+
+3. Start the Client
+	-double-click the mpeClient app
